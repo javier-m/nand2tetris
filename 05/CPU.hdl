@@ -1,0 +1,94 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input
+ * holds the value of this location. If the current instruction needs
+ * to write a value to M, the value is placed in outM, the address
+ * of the target location is placed in the addressM output, and the
+ * writeM control bit is asserted. (When writeM==0, any value may
+ * appear in outM). The outM and writeM outputs are combinational:
+ * they are affected instantaneously by the execution of the current
+ * instruction. The addressM and pc outputs are clocked: although they
+ * are affected by the execution of the current instruction, they commit
+ * to their new values only in the next time step. If reset==1 then the
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather
+ * than to the address resulting from executing the current instruction.
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M?
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Put your code here:
+
+    // instruction decoding
+    Or16(a=instruction, b[0..15]=false, out[15]=instruction-i, out[13..14]=x, out[12]=a, out[11]=c1, out[10]=c2, out[9]=c3, out[8]=c4, out[7]=c5, out[6]=c6, out[5]=d1, out[4]=d2, out[3]=d3, out[2]=j1, out[1]=j2, out[0]=j3);
+    And(a=instruction-i, b=a, out=instruction-a);
+    And(a=instruction-i, b=c1, out=instruction-c1);
+    And(a=instruction-i, b=c2, out=instruction-c2);
+    And(a=instruction-i, b=c3, out=instruction-c3);
+    And(a=instruction-i, b=c4, out=instruction-c4);
+    And(a=instruction-i, b=c5, out=instruction-c5);
+    And(a=instruction-i, b=c6, out=instruction-c6);
+    And(a=instruction-i, b=d1, out=instruction-d1);
+    And(a=instruction-i, b=d2, out=instruction-d2);
+    And(a=instruction-i, b=d3, out=instruction-d3, out=writeM);
+    And(a=instruction-i, b=j1, out=instruction-j1);
+    And(a=instruction-i, b=j2, out=instruction-j2);
+    And(a=instruction-i, b=j3, out=instruction-j3);
+
+    // register D
+    DRegister(in=outM-fromALU, load=instruction-d2, out=outD);
+
+    // register A
+    Not(in=instruction-i, out=a-instruction);
+    Mux16(a=outM-fromALU, b=instruction, sel=a-instruction, out=instruction-outM); // if instruction is an address then send it to A, otherwise send outM
+    Or(a=a-instruction, b=instruction-d1, out=loadA); // if instruction is an address or d1 == 1, load A
+    ARegister(in=instruction-outM, load=loadA, out=outA, out[0..14]=addressM);
+
+    // A/M
+    Mux16(a=outA, b=inM, sel=instruction-a, out=outAM);
+
+    // ALU
+    ALU(x=outD, y=outAM, zx=instruction-c1, nx=instruction-c2, zy=instruction-c3, ny=instruction-c4, f=instruction-c5, no=instruction-c6, out= outM, out= outM-fromALU, zr=zr, ng=ng);
+
+    //PC
+    DMux8Way(in=true, sel[2]=instruction-j1, sel[1]=instruction-j2, sel[0]=instruction-j3, a=no-jmp, b=jgt, c=jeq, d=jge, e=jlt, f=jne, g=jle, h=jmp-ok);
+
+    Not(in=zr, out=not-zr); // outM != zero
+    Not(in=ng, out=zr-ps); // outM >= 0
+    And(a=not-zr, b=zr-ps, out=ps); // outM > 0
+    Not(in=ps, out=zr-ng); // outM <= 0
+
+    And(a=jgt, b=ps, out=jgt-ok);
+    And(a=jeq, b=zr, out=jeq-ok);
+    And(a=jge, b=zr-ps, out=jge-ok);
+    And(a=jlt, b=ng, out=jlt-ok);
+    And(a=jne, b=not-zr, out=jne-ok);
+    And(a=jle, b=zr-ng, out=jle-ok);
+
+    Or8Way(in[0]=jgt-ok, in[1]=jeq-ok, in[2]=jge-ok, in[3]=jlt-ok, in[4]=jne-ok, in[5]=jle-ok, in[6]=jmp-ok, in[7]=false, out=jump-pc);
+
+    Not(in=jump-pc, out=inc-pc); // either the PC loads the new address or it increments
+    PC(in=outA, load=jump-pc, inc=inc-pc, reset=reset, out[0..14]=pc);
+}

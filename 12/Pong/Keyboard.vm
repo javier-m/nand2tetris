@@ -1,0 +1,156 @@
+function Keyboard.init 0
+push constant 24576
+pop static 0
+push constant 0
+return
+function Keyboard.keyPressed 0
+push static 0
+push constant 0
+add
+pop pointer 1
+push that 0
+return
+function Keyboard.readChar 1
+push constant 0
+call Output.printChar 1
+pop temp 0
+push constant 0
+pop local 0
+label Keyboard.readChar.while_1.L1
+push local 0
+push constant 0
+eq
+not
+if-goto Keyboard.readChar.while_1.L2
+call Keyboard.keyPressed 0
+pop local 0
+goto Keyboard.readChar.while_1.L1
+label Keyboard.readChar.while_1.L2
+label Keyboard.readChar.while_2.L1
+call Keyboard.keyPressed 0
+push constant 0
+eq
+not
+not
+if-goto Keyboard.readChar.while_2.L2
+goto Keyboard.readChar.while_2.L1
+label Keyboard.readChar.while_2.L2
+call Output.backSpace 0
+pop temp 0
+push local 0
+call Output.printChar 1
+pop temp 0
+push local 0
+return
+function Keyboard.readLine 2
+push argument 0
+call Output.printString 1
+pop temp 0
+push constant 64
+call String.new 1
+pop local 0
+push constant 0
+pop local 1
+label Keyboard.readLine.while_1.L1
+push constant 1
+neg
+not
+if-goto Keyboard.readLine.while_1.L2
+call Keyboard.readChar 0
+pop local 1
+push local 1
+call String.newLine 0
+eq
+not
+if-goto Keyboard.readLine.while_1.if_1.L1
+push local 0
+return
+goto Keyboard.readLine.while_1.if_1.L2
+label Keyboard.readLine.while_1.if_1.L1
+push local 1
+call String.backSpace 0
+eq
+not
+if-goto Keyboard.readLine.while_1.if_1.if_1.L1
+push local 0
+call String.length 1
+push constant 0
+gt
+not
+if-goto Keyboard.readLine.while_1.if_1.if_1.if_1.L1
+push local 0
+call String.eraseLastChar 1
+pop temp 0
+goto Keyboard.readLine.while_1.if_1.if_1.if_1.L2
+label Keyboard.readLine.while_1.if_1.if_1.if_1.L1
+label Keyboard.readLine.while_1.if_1.if_1.if_1.L2
+goto Keyboard.readLine.while_1.if_1.if_1.L2
+label Keyboard.readLine.while_1.if_1.if_1.L1
+push local 0
+push local 1
+call String.appendChar 2
+pop temp 0
+label Keyboard.readLine.while_1.if_1.if_1.L2
+label Keyboard.readLine.while_1.if_1.L2
+goto Keyboard.readLine.while_1.L1
+label Keyboard.readLine.while_1.L2
+push local 0
+return
+function Keyboard.readInt 2
+push argument 0
+call Output.printString 1
+pop temp 0
+push constant 64
+call String.new 1
+pop local 0
+push constant 0
+pop local 1
+label Keyboard.readInt.while_1.L1
+push constant 1
+neg
+not
+if-goto Keyboard.readInt.while_1.L2
+call Keyboard.readChar 0
+pop local 1
+push local 1
+call String.newLine 0
+eq
+not
+if-goto Keyboard.readInt.while_1.if_1.L1
+push local 0
+call String.intValue 1
+return
+goto Keyboard.readInt.while_1.if_1.L2
+label Keyboard.readInt.while_1.if_1.L1
+push local 1
+call String.backSpace 0
+eq
+not
+if-goto Keyboard.readInt.while_1.if_1.if_1.L1
+push local 0
+call String.length 1
+push constant 0
+gt
+not
+if-goto Keyboard.readInt.while_1.if_1.if_1.if_1.L1
+push local 0
+call String.eraseLastChar 1
+pop temp 0
+call Output.backSpace 0
+pop temp 0
+goto Keyboard.readInt.while_1.if_1.if_1.if_1.L2
+label Keyboard.readInt.while_1.if_1.if_1.if_1.L1
+label Keyboard.readInt.while_1.if_1.if_1.if_1.L2
+goto Keyboard.readInt.while_1.if_1.if_1.L2
+label Keyboard.readInt.while_1.if_1.if_1.L1
+push local 0
+push local 1
+call String.appendChar 2
+pop temp 0
+label Keyboard.readInt.while_1.if_1.if_1.L2
+label Keyboard.readInt.while_1.if_1.L2
+goto Keyboard.readInt.while_1.L1
+label Keyboard.readInt.while_1.L2
+push local 0
+call String.intValue 1
+return
